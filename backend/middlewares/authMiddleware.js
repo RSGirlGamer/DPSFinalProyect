@@ -7,10 +7,13 @@ exports.authenticate = (req, res, next) => {
     }
 
     try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        const extractedToken = token.startsWith('Bearer ') ? token.slice(7, token.length) : token;
+
+        // Validar el token usando el secreto
+        const verified = jwt.verify(extractedToken, process.env.JWT_SECRET);
         req.user = verified;
         next();
     } catch (err) {
-        res.status(400).json({ error: true, message: 'Token inválido o expirado.' });
+        return res.status(400).json({ error: true, message: 'Token inválido o expirado.' });
     }
 };
