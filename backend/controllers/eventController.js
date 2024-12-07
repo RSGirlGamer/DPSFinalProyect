@@ -1,33 +1,56 @@
-const pool = require('../config/db');
+const eventService = require('../services/eventService');
 
-exports.createEvent = async (req, res) => {
-    const { nombre, descripcion, fecha, ubicacion, creador } = req.body;
-    try {
-        await pool.query(
-            'INSERT INTO eventos (nombre, descripcion, fecha, ubicacion, creador) VALUES (?, ?, ?, ?, ?)',
-            [nombre, descripcion, fecha, ubicacion, creador]
-        );
-        res.status(201).json({ message: 'Evento creado con éxito' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al crear evento' });
-    }
+const eventController = {
+    async createEvent(req, res) {
+        try {
+            const event = await eventService.createEvent(req.body);
+            res.status(201).json({ message: 'Evento creado con éxito', event });
+        } catch (error) {
+            console.error('Error al crear evento:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    async getAllEvents(req, res) {
+        try {
+            const events = await eventService.getAllEvents();
+            res.json(events);
+        } catch (error) {
+            console.error('Error al obtener eventos:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    async getEventById(req, res) {
+        try {
+            const event = await eventService.getEventById(req.params.id);
+            if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+            res.json(event);
+        } catch (error) {
+            console.error('Error al obtener evento:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    async updateEvent(req, res) {
+        try {
+            const event = await eventService.updateEvent(req.params.id, req.body);
+            res.json({ message: 'Evento actualizado con éxito', event });
+        } catch (error) {
+            console.error('Error al actualizar evento:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    async deleteEvent(req, res) {
+        try {
+            await eventService.deleteEvent(req.params.id);
+            res.json({ message: 'Evento eliminado con éxito' });
+        } catch (error) {
+            console.error('Error al eliminar evento:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
 };
 
-exports.getEvents = async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM eventos');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Error al obtener eventos' });
-    }
-};
-
-exports.getEventDetails = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const [rows] = await pool.query('SELECT * FROM eventos WHERE id_evento = ?', [id]);
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: 'Error al obtener detalles del evento' });
-    }
-};
+module.exports = eventController;

@@ -1,8 +1,13 @@
 const express = require('express');
-const { addAttendee, getAttendeesByEvent } = require('./controllers/attendeeController');
+const attendeeController = require('../controllers/attendeeController');
+const { authenticate } = require('../middlewares/authMiddleware');
+const { errorHandler } = require('../utils/errorHandler');
+
 const router = express.Router();
 
-router.post('/', addAttendee); // Agregar asistente a un evento
-router.get('/:eventId', getAttendeesByEvent); // Obtener asistentes de un evento
+router.post('/', authenticate, attendeeController.addAttendee);
+router.get('/:eventId', authenticate, attendeeController.getAttendeesByEvent);
+
+router.use(errorHandler);
 
 module.exports = router;

@@ -1,34 +1,25 @@
-const pool = require('../config/db');
+const attendeeService = require('../services/attendeeService');
 
-// Agregar asistente a un evento
-exports.addAttendee = async (req, res) => {
-    const { id_usuario, id_evento } = req.body;
+const attendeeController = {
+    async addAttendee(req, res) {
+        try {
+            const attendee = await attendeeService.addAttendee(req.body);
+            res.status(201).json({ message: 'Asistente agregado con éxito', attendee });
+        } catch (error) {
+            console.error('Error al agregar asistente:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
 
-    try {
-        await pool.query(
-            'INSERT INTO asistentes (id_usuario, id_evento) VALUES (?, ?)',
-            [id_usuario, id_evento]
-        );
-        res.status(201).json({ message: 'Asistente agregado al evento con éxito' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al agregar asistente' });
-    }
+    async getAttendeesByEvent(req, res) {
+        try {
+            const attendees = await attendeeService.getAttendeesByEvent(req.params.eventId);
+            res.json(attendees);
+        } catch (error) {
+            console.error('Error al obtener asistentes:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
 };
 
-// Obtener asistentes de un evento
-exports.getAttendeesByEvent = async (req, res) => {
-    const { eventId } = req.params;
-
-    try {
-        const [rows] = await pool.query(
-            `SELECT u.id_usuario, u.nombre, u.email 
-             FROM asistentes a 
-             JOIN usuarios u ON a.id_usuario = u.id_usuario 
-             WHERE a.id_evento = ?`,
-            [eventId]
-        );
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Error al obtener asistentes del evento' });
-    }
-};
+module.exports = attendeeController;

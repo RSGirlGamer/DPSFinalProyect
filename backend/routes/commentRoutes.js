@@ -1,8 +1,13 @@
 const express = require('express');
-const { addComment, getCommentsByEvent } = require('./controllers/commentController');
+const commentController = require('../controllers/commentController');
+const { authenticate } = require('../middlewares/authMiddleware');
+const { errorHandler } = require('../utils/errorHandler');
+
 const router = express.Router();
 
-router.post('/', addComment); // Agregar comentario a un evento
-router.get('/:eventId', getCommentsByEvent); // Obtener comentarios de un evento
+router.post('/', authenticate, commentController.addComment);
+router.get('/:eventId', authenticate, commentController.getCommentsByEvent);
+
+router.use(errorHandler);
 
 module.exports = router;

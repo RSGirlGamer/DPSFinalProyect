@@ -1,33 +1,17 @@
-const pool = require('../config/db');
+const express = require('express');
+const eventController = require('../controllers/eventController');
+const { authenticate } = require('../middlewares/authMiddleware');
+const { validateEventId } = require('../utils/validators');
+const { errorHandler } = require('../utils/errorHandler');
 
-exports.createEvent = async (req, res) => {
-    const { nombre, descripcion, fecha, ubicacion, creador } = req.body;
-    try {
-        await pool.query(
-            'INSERT INTO eventos (nombre, descripcion, fecha, ubicacion, creador) VALUES (?, ?, ?, ?, ?)',
-            [nombre, descripcion, fecha, ubicacion, creador]
-        );
-        res.status(201).json({ message: 'Evento creado con éxito' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al crear evento' });
-    }
-};
+const router = express.Router();
 
-exports.getEvents = async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM eventos');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Error al obtener eventos' });
-    }
-};
+router.post('/', authenticate, eventController.createEvent);
+router.get('/', authenticate, eventController.getAllEvents);
+router.get('/:id', authenticate, validateEventId, eventController.getEventById);
+router.put('/:id', authenticate, eventController.updateEvent);
+router.delete('/:id', authenticate, eventController.deleteEvent);
 
-exports.getEventDetails = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const [rows] = await pool.query('SELECT * FROM eventos WHERE id_evento = ?', [id]);
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: 'Error al obtener detalles del evento' });
-    }
-};
+router.use(errorHandler);
+
+module.exports = router;
