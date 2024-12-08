@@ -1,34 +1,30 @@
-const pool = require('../config/db');
+const Comment = require("../models/Comment");
 
-// Agregar comentario a un evento
-exports.addComment = async (req, res) => {
-    const { id_evento, id_usuario, comentario, calificacion } = req.body;
-
-    try {
-        await pool.query(
-            'INSERT INTO comentarios (id_evento, id_usuario, comentario, calificacion) VALUES (?, ?, ?, ?)',
-            [id_evento, id_usuario, comentario, calificacion]
-        );
-        res.status(201).json({ message: 'Comentario agregado con éxito' });
-    } catch (err) {
-        res.status(500).json({ error: 'Error al agregar comentario' });
-    }
+exports.getCommentsByEvent = async (req, res) => {
+  try {
+    const comments = await Comment.findAll({ where: { event_id: req.params.eventId } });
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// Obtener comentarios de un evento
-exports.getCommentsByEvent = async (req, res) => {
-    const { eventId } = req.params;
+exports.createComment = async (req, res) => {
+  try {
+    const comment = await Comment.create(req.body);
+    res.status(201).json(comment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-    try {
-        const [rows] = await pool.query(
-            `SELECT c.id_comentario, c.comentario, c.calificacion, u.nombre AS autor 
-             FROM comentarios c 
-             JOIN usuarios u ON c.id_usuario = u.id_usuario 
-             WHERE c.id_evento = ?`,
-            [eventId]
-        );
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: 'Error al obtener comentarios del evento' });
-    }
+exports.deleteComment = async (req, res) => {
+  try {
+    const comment = await Comment.findByPk(req.params.id);
+    if (!comment) return res.status(404).json({ error: "Comentario no encontrado" });
+    await comment.destroy();
+    res.json({ message: "Comentario eliminado" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

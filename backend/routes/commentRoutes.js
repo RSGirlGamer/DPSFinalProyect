@@ -1,8 +1,9 @@
-const express = require('express');
-const { addComment, getCommentsByEvent } = require('./controllers/commentController');
+const express = require("express");
 const router = express.Router();
+const { getCommentsByEvent, createComment, deleteComment } = require("../controllers/commentController");
 
-router.post('/', addComment); // Agregar comentario a un evento
-router.get('/:eventId', getCommentsByEvent); // Obtener comentarios de un evento
+router.get("/event/:eventId", getCommentsByEvent);
+router.post("/", createComment);
+router.delete("/:id", deleteComment);
 
 module.exports = router;
